@@ -1,7 +1,7 @@
 use std::{
     env::args,
+    fs,
     process::{self, Command},
-    fs
 };
 
 use crate::libs::{help::read_file, vertecies::Graph};
@@ -26,7 +26,12 @@ fn main() {
 fn zadanie1(graph: &mut Graph, draw_full: bool) {
     let size_mst = graph.mst();
     let mut sum = 0;
-    graph.get_mst().clone().unwrap().iter().for_each(|x| sum += x.len());
+    graph
+        .get_mst()
+        .clone()
+        .unwrap()
+        .iter()
+        .for_each(|x| sum += x.len());
     if draw_full {
         println!(
             "Minimum Spanning Tree:\n{:?}\n\n# of edges: {}\n\nSize of minimum spanning tree: {size_mst:^20}\n",
@@ -59,13 +64,15 @@ fn zadanie3(graph: &Graph, draw_full: bool) {
         let mut min_b = i32::MAX;
         for _b in 0..5 {
             let mut min_a = i32::MAX;
-            for _a in 0..10{
+            for _a in 0..10 {
                 let (_path, size) = graph.random_path();
                 if size < min_a {
                     min_a = size;
                     if size < min_b {
                         min_b = size;
-                        if size < min_c { min_c = size; }
+                        if size < min_c {
+                            min_c = size;
+                        }
                     }
                 }
             }

@@ -1,5 +1,5 @@
+use rand::{prelude::SliceRandom, thread_rng};
 use std::cmp::Ordering;
-use rand::{thread_rng, prelude::SliceRandom};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Point {
@@ -212,10 +212,17 @@ impl Graph {
         let mut size: i32 = 0;
         table.iter().enumerate().for_each(|(index, point)| {
             if index + 1 < table.len() as usize {
-                size += self.neighbors[*point as usize].iter().find(|x| x.to == table[index + 1]).unwrap().weight;
-            }
-            else {
-                size += self.neighbors[*point as usize].iter().find(|x| x.to == table[0]).unwrap().weight;
+                size += self.neighbors[*point as usize]
+                    .iter()
+                    .find(|x| x.to == table[index + 1])
+                    .unwrap()
+                    .weight;
+            } else {
+                size += self.neighbors[*point as usize]
+                    .iter()
+                    .find(|x| x.to == table[0])
+                    .unwrap()
+                    .weight;
             }
         });
 

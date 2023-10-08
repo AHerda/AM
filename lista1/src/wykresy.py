@@ -9,5 +9,3 @@ dane = pd.read_csv("./dane.csv", sep=";", encoding="UTF-16LE", index_col=0, name
 dane.plot(linestyle="-", marker=".")
 plt.xticks(rotation = 15)
 plt.savefig("plots/plot.png", dpi=300)
-
-# print(plt.rcParams)
