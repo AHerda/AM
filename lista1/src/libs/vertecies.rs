@@ -51,7 +51,7 @@ impl Edge {
 
 impl Ord for Edge {
     fn cmp(&self, other: &Self) -> Ordering {
-        other.weight.cmp(&self.weight)
+        self.weight.cmp(&other.weight)
     }
 }
 
@@ -142,6 +142,7 @@ impl Graph {
 
             mst[edge.from as usize].push((edge.to, edge.weight));
             mst[edge.to as usize].push((edge.from, edge.weight));
+            println!("{}", edge.weight);
             size += edge.weight;
 
             visited[edge.from as usize] = true;
