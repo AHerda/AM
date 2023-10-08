@@ -142,7 +142,6 @@ impl Graph {
 
             mst[edge.from as usize].push((edge.to, edge.weight));
             mst[edge.to as usize].push((edge.from, edge.weight));
-            println!("{}", edge.weight);
             size += edge.weight;
 
             visited[edge.from as usize] = true;

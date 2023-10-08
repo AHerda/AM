@@ -1,42 +1,56 @@
-use std::{env::args, process};
+use std::{
+    env::args,
+    process::{self, Command},
+    fs
+};
 
 use crate::libs::{help::read_file, vertecies::Graph};
 
 mod libs;
 
 fn main() {
-    let args: Vec<String> = args().collect();
-    if args.len() != 2 {
-        eprintln!("Wrong number of arguments");
-        process::exit(1);
-    }
+    // let args: Vec<String> = args().collect();
+    // if args.len() != 2 {
+    //     eprintln!("Wrong number of arguments");
+    //     process::exit(1);
+    // }
 
-    let mut graph = read_file(&args[1]);
-    zadanie1(&mut graph);
-    zadanie2(&graph);
-    zadanie3(&graph);
+    // let mut graph = read_file(&args[1]);
+    // zadanie1(&mut graph, true);
+    // zadanie2(&graph, true);
+    // zadanie3(&graph, true);
+
+    wszystkie_zadania();
 }
 
-fn zadanie1(graph: &mut Graph) {
+fn zadanie1(graph: &mut Graph, draw_full: bool) {
     let size_mst = graph.mst();
     let mut sum = 0;
     graph.get_mst().clone().unwrap().iter().for_each(|x| sum += x.len());
-    println!(
-        "Minimum Spanning Tree:\n{:?}\n\n# of edges: {}\n\nSize of minimum spanning tree: {size_mst:^20}\n",
-        graph.get_mst().clone().unwrap(),
-        sum / 2
-    );
+    if draw_full {
+        println!(
+            "Minimum Spanning Tree:\n{:?}\n\n# of edges: {}\n\nSize of minimum spanning tree: {size_mst:^20}\n",
+            graph.get_mst().clone().unwrap(),
+            sum / 2
+        );
+    } else {
+        print!("{}", size_mst);
+    }
 }
 
-fn zadanie2(graph: &Graph) {
+fn zadanie2(graph: &Graph, draw_full: bool) {
     let (mst_dfs_path, times_visited, size_mst_dfs) = graph.dfs().unwrap();
-    println!(
-        "Path:\n{:?}\n\nSize of path: {size_mst_dfs:^20}\n\nHow many times each node is visited: {:?}",
-        mst_dfs_path, times_visited
-    );
+    if draw_full {
+        println!(
+            "Path:\n{:?}\n\nSize of path: {size_mst_dfs:^20}\n\nHow many times each node is visited: {:?}",
+            mst_dfs_path, times_visited
+        );
+    } else {
+        print!("{}", size_mst_dfs);
+    }
 }
 
-fn zadanie3(graph: &Graph) {
+fn zadanie3(graph: &Graph, draw_full: bool) {
     let mut avg_a = 0;
     let mut avg_b = 0;
 
@@ -63,6 +77,31 @@ fn zadanie3(graph: &Graph) {
     avg_a /= 100;
     avg_b /= 20;
 
-    println!("|{:^20}|{:^20}|{:^20}|", "min_c", "avg_b", "avg_a");
-    println!("|{:^20}|{:^20}|{:^20}|", min_c, avg_b, avg_a);
+    if draw_full {
+        println!("|{:^20}|{:^20}|{:^20}|", "min_c", "avg_b", "avg_a");
+        println!("|{:^20}|{:^20}|{:^20}|", min_c, avg_b, avg_a);
+    } else {
+        print!("{};{};{}", min_c, avg_b, avg_a);
+    }
+}
+
+fn wszystkie_zadania() {
+    let files = fs::read_dir(r#".\data"#).unwrap();
+    files.for_each(|file| {
+        let file_str = file.unwrap().path().to_str().unwrap().to_string();
+
+        let mut graph = read_file(&file_str);
+        print!("{};", file_str[7..].to_string());
+        zadanie1(&mut graph, false);
+        print!(";");
+        zadanie2(&graph, false);
+        print!(";");
+        zadanie3(&graph, false);
+        print!("\n");
+    });
+
+    Command::new("python")
+        .arg("src/wykresy.py")
+        .spawn()
+        .expect("wykresy.py command failed to start");
 }
