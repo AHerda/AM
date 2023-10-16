@@ -211,7 +211,7 @@ impl Graph {
 
         let mut size: i32 = 0;
         table.iter().enumerate().for_each(|(index, point)| {
-            if index + 1 < table.len() as usize {
+            if index + 1 < table.len() {
                 size += self.neighbors[*point as usize]
                     .iter()
                     .find(|x| x.to == table[index + 1])

@@ -8,4 +8,4 @@ dane = pd.read_csv("./plots/dane.csv", sep=";", encoding="UTF-16LE", index_col=0
 
 dane.plot(linestyle="-", marker=".")
 plt.xticks(rotation = 15)
-plt.savefig("plots/plot.png", dpi=300)
+plt.savefig("plots/plot.png", dpi=500)

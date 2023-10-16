@@ -93,18 +93,18 @@ fn zadanie3(graph: &Graph, draw_full: bool) {
 }
 
 fn wszystkie_zadania() {
-    let files = fs::read_dir(r#".\data"#).unwrap();
+    let files = fs::read_dir(r".\data").unwrap();
     files.for_each(|file| {
         let file_str = file.unwrap().path().to_str().unwrap().to_string();
 
         let mut graph = read_file(&file_str);
-        print!("{};", file_str[7..].to_string());
+        print!("{};", &file_str[7..]);
         zadanie1(&mut graph, false);
         print!(";");
         zadanie2(&graph, false);
         print!(";");
         zadanie3(&graph, false);
-        print!("\n");
+        println!();
     });
 
     Command::new("python")
