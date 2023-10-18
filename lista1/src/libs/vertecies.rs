@@ -120,11 +120,11 @@ impl Graph {
         &self.mst
     }
 
-    pub fn mst(&mut self) -> i32 {
+    pub fn mst(&mut self) -> u32 {
         self.edges.sort();
 
         let mut mst = vec![Vec::new(); (self.n + 1) as usize];
-        let mut size: i32 = 0;
+        let mut size: u32 = 0;
         let mut visited: Vec<bool> = vec![false; (self.n + 1) as usize];
 
         visited[self.edges[0].from as usize] = true;
@@ -142,7 +142,7 @@ impl Graph {
 
             mst[edge.from as usize].push((edge.to, edge.weight));
             mst[edge.to as usize].push((edge.from, edge.weight));
-            size += edge.weight;
+            size += edge.weight as u32;
 
             visited[edge.from as usize] = true;
             visited[edge.to as usize] = true;
