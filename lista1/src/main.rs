@@ -123,23 +123,23 @@ fn zadanie3(graph: &Graph, draw: bool, draw_full: bool) -> (u32, u32, u32) {
 
 fn wszystkie_zadania() {
     let files = fs::read_dir(r".\data").unwrap();
-    let mut out_file = File::open("plots/dane.csv").expect("Nie ma pliku");
+    let mut out_file = File::open("csv/dane.csv").expect("Nie ma pliku");
     files.for_each(|file| {
         let file_str = file.unwrap().path().to_str().unwrap().to_string();
+        let mut graph_file =
+            File::create(format!("help/graph_{}.json", &file_str[7..13])).expect("Nie ma pliku");
         let mut results_mst =
-            File::create(format!("results/mst_{}.json", &file_str[7..13])).expect("Nie ma pliku");
+            File::create(format!("help/mst_{}.json", &file_str[7..13])).expect("Nie ma pliku");
         let mut results_dfs =
-            File::create(format!("results/dfs_{}.json", &file_str[7..13])).expect("Nie ma pliku");
+            File::create(format!("help/dfs_{}.json", &file_str[7..13])).expect("Nie ma pliku");
 
         let mut graph = read_file(&file_str);
-        //print!("{};", &file_str[7..]);
+        _ = write!(graph_file, "{}", graph.get_points_json());
+
         let mst = zadanie1(&mut graph, false, false, Some(&mut results_mst));
-        //print!(";");
         let dfs = zadanie2(&graph, false, false, Some(&mut results_dfs));
-        //print!(";");
         let (c, b, a) = zadanie3(&graph, false, false);
-        //println!();
-        // _ = write!(io::stdout(), "{};{};{};{};{};{}\n", &file_str[7..], mst, dfs, c, b, a);
+
         _ = writeln!(
             out_file,
             "{};{};{};{};{};{}",

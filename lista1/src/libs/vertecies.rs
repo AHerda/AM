@@ -1,7 +1,8 @@
 use rand::{prelude::SliceRandom, thread_rng};
+use serde::Serialize;
 use std::cmp::Ordering;
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 pub struct Point {
     pub id: i32,
     x: i32,
@@ -17,6 +18,14 @@ impl Point {
         (((self.x - point.x).pow(2) + (self.y - point.y).pow(2)) as f64)
             .sqrt()
             .round() as i32
+    }
+
+    pub fn _get_coord(&self) -> (i32, i32) {
+        (self.x, self.y)
+    }
+
+    pub fn _to_json(&self) -> String {
+        serde_json::to_string(&self).unwrap()
     }
 }
 
@@ -116,6 +125,14 @@ impl Graph {
         self.edges.sort();
     }
 
+    pub fn _get_points(&self) -> Vec<Point> {
+        self.points.clone()
+    }
+
+    pub fn get_points_json(&self) -> String {
+        serde_json::to_string(&self.points).unwrap()
+    }
+
     pub fn get_mst(&self) -> &Option<Vec<Vec<(i32, i32)>>> {
         &self.mst
     }
@@ -160,7 +177,8 @@ impl Graph {
                 let mut number_visited = 0;
                 let mut times_visited: Vec<i32> = vec![0; (self.n + 1) as usize];
 
-                self.dfs_traverse(
+                _ = self.dfs_traverse(
+                    None,
                     1,
                     &mut visited,
                     &mut number_visited,
@@ -176,33 +194,46 @@ impl Graph {
 
     fn dfs_traverse(
         &self,
+        mut last: Option<i32>,
         current: i32,
         visited: &mut Vec<bool>,
         number_visited: &mut i32,
         path: &mut Vec<i32>,
         size: &mut i32,
         times_visited: &mut Vec<i32>,
-    ) {
+    ) -> Option<i32> {
         let c: usize = current as usize;
 
         visited[c] = true;
         *number_visited += 1;
         times_visited[c] += 1;
+        if let Some(last) = last {
+            *size += self
+                .edges
+                .iter()
+                .find(|&edge| edge.from == last && edge.to == current)
+                .unwrap()
+                .weight;
+        }
         path.push(current);
+        last = Some(current);
 
         self.mst.as_ref().unwrap()[c]
             .iter()
-            .for_each(|&(neighbor, weight)| {
+            .for_each(|&(neighbor, _weight)| {
                 if !visited[neighbor as usize] {
-                    *size += weight;
-                    self.dfs_traverse(neighbor, visited, number_visited, path, size, times_visited);
-                    if *number_visited != self.n {
-                        path.push(current);
-                        *size += weight;
-                        times_visited[c] += 1;
-                    }
+                    last = self.dfs_traverse(
+                        Some(current),
+                        neighbor,
+                        visited,
+                        number_visited,
+                        path,
+                        size,
+                        times_visited,
+                    );
                 }
             });
+        Some(current)
     }
 
     pub fn random_path(&self) -> (Vec<i32>, i32) {
