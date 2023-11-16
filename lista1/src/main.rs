@@ -3,8 +3,9 @@ use std::{
     io::Write,
     process::Command,
 };
+use graph_tsp::graph::Graph;
 
-use crate::libs::{help::read_file, vertecies::Graph};
+use crate::libs::{help::read_file};
 
 mod libs;
 

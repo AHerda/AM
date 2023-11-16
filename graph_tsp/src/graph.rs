@@ -1,75 +1,12 @@
-use rand::{prelude::SliceRandom, thread_rng};
-use serde::Serialize;
-use std::cmp::Ordering;
+use rand::{
+    prelude::SliceRandom,
+    thread_rng
+};
 
-#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
-pub struct Point {
-    pub id: i32,
-    x: i32,
-    y: i32,
-}
+use crate::edge::Edge;
+use crate::point::Point;
 
-impl Point {
-    pub fn new(id: i32, x: i32, y: i32) -> Point {
-        Point { id, x, y }
-    }
-
-    pub fn distance(&self, point: &Point) -> i32 {
-        (((self.x - point.x).pow(2) + (self.y - point.y).pow(2)) as f64)
-            .sqrt()
-            .round() as i32
-    }
-
-    pub fn _get_coord(&self) -> (i32, i32) {
-        (self.x, self.y)
-    }
-
-    pub fn _to_json(&self) -> String {
-        serde_json::to_string(&self).unwrap()
-    }
-}
-
-impl Ord for Point {
-    fn cmp(&self, other: &Self) -> Ordering {
-        other.id.cmp(&self.id)
-    }
-}
-
-impl PartialOrd for Point {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, Clone)]
-struct Edge {
-    from: i32,
-    to: i32,
-    weight: i32,
-}
-
-impl Edge {
-    fn new(from: &Point, to: &Point) -> Edge {
-        Edge {
-            from: from.id,
-            to: to.id,
-            weight: from.distance(to),
-        }
-    }
-}
-
-impl Ord for Edge {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.weight.cmp(&other.weight)
-    }
-}
-
-impl PartialOrd for Edge {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
+#[derive(Debug)]
 pub struct Graph {
     edges: Vec<Edge>,
     neighbors: Vec<Vec<Edge>>,
@@ -89,7 +26,33 @@ impl Graph {
         }
     }
 
-    pub fn _print(&self) {
+    pub fn create_graph(content: &str) -> Graph {
+        let mut graph: Graph = Graph::new();
+        let mut flag: bool = false;
+        content.split("\r\n").for_each(|line| {
+            if flag {
+                let numbers: Vec<&str> = line.split(' ').collect();
+                if numbers.len() == 3 {
+                    graph.add_point(Point::new(
+                        numbers[0].parse::<i32>().unwrap(),
+                        numbers[1].parse::<i32>().unwrap(),
+                        numbers[2].parse::<i32>().unwrap(),
+                    ));
+                } else {
+                    flag = false;
+                }
+            } else if line == "NODE_COORD_SECTION" {
+                flag = true;
+            } else if line.contains("DIMENSION") {
+                let n: i32 = line.split(' ').nth(2).unwrap().parse::<i32>().unwrap();
+                graph.set_size(n);
+            }
+        });
+    
+        graph
+    }
+
+    pub fn print(&self) {
         self.points.iter().for_each(|point| println!("{:?}", point))
     }
 
@@ -108,7 +71,7 @@ impl Graph {
         self.points.push(point);
     }
 
-    pub fn _size(&self) -> i32 {
+    pub fn size(&self) -> i32 {
         self.n
     }
 
@@ -117,20 +80,24 @@ impl Graph {
         self.neighbors = vec![Vec::new(); (n + 1) as usize];
     }
 
-    pub fn _edges(&self) -> i32 {
+    pub fn edges(&self) -> i32 {
         (self.n * self.n - self.n) / 2
     }
 
-    pub fn _sort(&mut self) {
+    pub fn sort(&mut self) {
         self.edges.sort();
     }
 
-    pub fn _get_points(&self) -> Vec<Point> {
+    pub fn get_points(&self) -> Vec<Point> {
         self.points.clone()
     }
 
     pub fn get_points_json(&self) -> String {
         serde_json::to_string(&self.points).unwrap()
+    }
+
+    pub fn get_neighbors(&self) -> Vec<Vec<Edge>> {
+        self.neighbors.clone()
     }
 
     pub fn get_mst(&self) -> &Option<Vec<Vec<(i32, i32)>>> {
@@ -192,7 +159,7 @@ impl Graph {
         }
     }
 
-    fn dfs_traverse(
+    pub fn dfs_traverse(
         &self,
         mut last: Option<i32>,
         current: i32,
