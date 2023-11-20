@@ -190,7 +190,7 @@ impl Graph {
             .for_each(|&(neighbor, _weight)| {
                 if !visited[neighbor as usize] {
                     last = self.dfs_traverse(
-                        Some(current),
+                        last,
                         neighbor,
                         visited,
                         number_visited,

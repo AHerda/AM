@@ -14,13 +14,12 @@ pub fn read_file(path: &str) -> Graph {
 }
 
 pub fn read_dir(dir_path: &str) -> Vec<Graph> {
-    let mut results = Vec::new();
-
     let files = fs::read_dir(dir_path).unwrap();
-    files.for_each(|file| {
-        let file_str = file.unwrap().path().to_str().unwrap().to_string();
-        results.push(read_file(&file_str));
-    });
 
-    results
+    files
+        .map(|file| {
+            let file_str = file.unwrap().path().to_str().unwrap().to_string();
+            read_file(&file_str)
+        })
+        .collect()
 }
