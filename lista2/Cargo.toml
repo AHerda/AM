@@ -9,3 +9,6 @@ edition = "2021"
 graph_tsp = { version = "0.1.0", path = "../graph_tsp" }
 rand = "0.8.5"
 rayon = "1.8.0"
+
+[profile.release]
+debug = true
