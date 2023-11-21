@@ -10,6 +10,7 @@ use crate::point::Point;
 pub struct Graph {
     edges: Vec<Edge>,
     neighbors: Vec<Vec<Edge>>,
+    neighbors2: Vec<Vec<i32>>,
     points: Vec<Point>,
     n: i32,
     mst: Option<Vec<Vec<(i32, i32)>>>,
@@ -20,6 +21,7 @@ impl Graph {
         Graph {
             edges: Vec::new(),
             neighbors: Vec::new(),
+            neighbors2: Vec::new(),
             points: Vec::new(),
             n: 0,
             mst: None,
@@ -60,12 +62,15 @@ impl Graph {
         self.points.iter().for_each(|point_temp| {
             let temp_edge: Edge = Edge::new(&point, point_temp);
             let temp_reverse: Edge = Edge::new(point_temp, &point);
+            let weight = temp_edge.weight;
 
             self.edges.push(temp_edge.clone());
             self.neighbors[point.id as usize].push(temp_edge);
+            self.neighbors2[point.id as usize][point_temp.id as usize] = weight;
 
             self.edges.push(temp_reverse.clone()); // Can you remove this line?? idk
             self.neighbors[point_temp.id as usize].push(temp_reverse); // Can you remove this line?? idk
+            self.neighbors2[point_temp.id as usize][point.id as usize] = weight; // Can you remove this line?? idk
         });
 
         self.points.push(point);
@@ -78,6 +83,7 @@ impl Graph {
     pub fn set_size(&mut self, n: i32) {
         self.n = n;
         self.neighbors = vec![Vec::new(); (n + 1) as usize];
+        self.neighbors2 = vec![vec![-1; (n + 1) as usize]; (n + 1) as usize];
     }
 
     pub fn edges(&self) -> i32 {
@@ -98,6 +104,10 @@ impl Graph {
 
     pub fn get_neighbors(&self) -> Vec<Vec<Edge>> {
         self.neighbors.clone()
+    }
+
+    pub fn get_neighbors2(&self) -> Vec<Vec<i32>> {
+        self.neighbors2.clone()
     }
 
     pub fn get_mst(&self) -> &Option<Vec<Vec<(i32, i32)>>> {

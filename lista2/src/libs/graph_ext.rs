@@ -1,13 +1,13 @@
 use graph_tsp::graph::Graph;
-use rand::Rng;
+use rand::{Rng, seq::SliceRandom};
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 pub trait Lista2 {
     fn dfs_random_start(&self) -> Option<(Vec<i32>, i32)>;
-    fn invert(&self, path: &mut [i32], from: i32, to: i32) -> i32;
-    fn measure_path(&self, path: &[i32]) -> i32;
+    fn invert(&self, path: &mut [i32], from: i32, to: i32, neighbors: &Vec<Vec<i32>>) -> i32;
+    fn measure_path(&self, path: &[i32], neighbors: &Vec<Vec<i32>>) -> i32;
     fn all_pairs(&self) -> Vec<(i32, i32)>;
-    fn best_pair(&self, path: &Vec<i32>, all_pairs: &mut Vec<(i32, i32)>) -> ((i32, i32), i32);
+    fn best_pair(&self, path: &mut Vec<i32>, all_pairs: &mut Vec<(i32, i32)>, neighbors: &Vec<Vec<i32>>) -> ((i32, i32), i32);
     fn local_search(&self, path: &mut Vec<i32>) -> (i32, i32);
 }
 
@@ -21,7 +21,6 @@ impl Lista2 for Graph {
                 let mut visited: Vec<bool> = vec![false; (self.size() + 1) as usize];
                 let mut number_visited = 0;
                 let mut times_visited: Vec<i32> = vec![0; (self.size() + 1) as usize];
-                println!("Dupa_dfs");
                 _ = self.dfs_traverse(
                     None,
                     (rng.gen::<u32>() % self.size() as u32 + 1) as i32,
@@ -38,19 +37,18 @@ impl Lista2 for Graph {
     }
 
     fn local_search(&self, path: &mut Vec<i32>) -> (i32, i32) {
-        println!("Dupa local");
+        let len = path.len();
+        let neighbors = self.get_neighbors2();
         let mut it = 0;
         let mut all_pairs = self.all_pairs();
-        let mut best_path_size = self.measure_path(path);
-        println!("Dupa local 2");
+        let mut best_path_size = self.measure_path(path, &neighbors);
         loop {
-            println!("it: {}\n\tsize: {}", it, best_path_size);
-            let (best_pair, size) = self.best_pair(&path.clone(), &mut all_pairs);
-            if size >= best_path_size {
+            let (best_pair, size) = self.best_pair(path, &mut all_pairs, &neighbors);
+            if size >= best_path_size || (it > 100 && len > 1000) {
                 return (best_path_size, it);
             }
             best_path_size = size;
-            self.invert(path, best_pair.0, best_pair.1);
+            path.swap(best_pair.0 as usize, best_pair.1 as usize);
             it += 1;
         }
     }
@@ -67,33 +65,32 @@ impl Lista2 for Graph {
         result
     }
 
-    fn best_pair(&self, path: &Vec<i32>, all_pairs: &mut Vec<(i32, i32)>) -> ((i32, i32), i32) {
-        println!("Dupa best pair\t{}", all_pairs.len());
-        let all_pairs2 = all_pairs
-            .par_iter()
-            .map(|(a, b)| ((*a, *b), self.invert(&mut path.clone(), *a, *b)))
-            .collect::<Vec<((i32, i32), i32)>>();
-        println!("Dupa best pair2");
-        *all_pairs2
+    fn best_pair(&self, path: &mut Vec<i32>, all_pairs: &mut Vec<(i32, i32)>, neighbors: &Vec<Vec<i32>>) -> ((i32, i32), i32) {
+        let mut min = ((0, 0), i32::MAX);
+        let mut rng = rand::thread_rng();
+        all_pairs.shuffle(&mut rng);
+        all_pairs[0..std::cmp::min(50*path.len(), all_pairs.len())]
             .iter()
-            .min_by(|a, b| a.1.cmp(&b.1))
-            .expect("Da_fuq?!?")
+            .for_each(|(a, b)| {
+                let temp = self.invert(path, *a, *b, neighbors);
+                if temp < min.1 {
+                    min = ((*a, *b), temp);
+                }
+            });
+        min
     }
 
-    fn invert(&self, path: &mut [i32], from_id: i32, to_id: i32) -> i32 {
+    fn invert(&self, path: &mut [i32], from_id: i32, to_id: i32, neighbors: &Vec<Vec<i32>>) -> i32 {
         path.swap(from_id as usize, to_id as usize);
-        self.measure_path(&path)
+        let path_size = self.measure_path(&path, neighbors);
+        path.swap(to_id as usize, from_id as usize);
+        path_size
     }
 
-    fn measure_path(&self, path: &[i32]) -> i32 {
-        let mut size = 0;
-        let len = path.len();
-        let neighbors = self.get_neighbors2();
-
-        for i in 0..len {
-            size += neighbors[path[i] as usize][path[(i + 1) % len] as usize];
-        }
-
-        size
+    fn measure_path(&self, path: &[i32], neighbors: &Vec<Vec<i32>>) -> i32 {
+        path.iter()
+            .zip(path.iter().cycle().skip(1))
+            .map(|(&from, &to)| neighbors[from as usize][to as usize])
+            .sum()
     }
 }
